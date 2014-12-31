@@ -169,12 +169,7 @@ static void swapBlock(moda_word_t *block);
 #endif
 #endif
 
-/**
- * @param[in] y accumulator
- * @param[in] 
- *
- * */
-static void mul128(moda_word_t *x, const moda_word_t *y);
+static void xormul128(moda_word_t *x, const moda_word_t *text, const moda_word_t *y);
 
 /**
  * Increment an unaligned big endian 32bit counter
@@ -321,7 +316,7 @@ static void swapBlock(moda_word_t *block)
 #endif
 #endif
 
-static void mul128(moda_word_t *x, const moda_word_t *y)
+static void xormul128(moda_word_t *x, const moda_word_t *text, const moda_word_t *y)
 {
     /* Table-less galois multiplication in a 128bit field
      *
@@ -353,6 +348,8 @@ static void mul128(moda_word_t *x, const moda_word_t *y)
     uint8_t i;
     uint8_t j;
     uint8_t k;
+
+    xor128(x, text);
 
     xor128(z, z);
     copy128(v, x);
@@ -474,8 +471,7 @@ static void gcm(const struct aes_ctxt *aes, const uint8_t *iv, uint32_t ivSize, 
 
                 xor128(part, part);
                 localMemcpy((uint8_t *)part, inPtr, ((size < AES_BLOCK_SIZE)? (uint8_t)size : AES_BLOCK_SIZE));
-                xor128((moda_word_t *)counter, part);
-                mul128((moda_word_t *)counter, h);
+                xormul128((moda_word_t *)counter, part, h);
                 
                 if(size <= AES_BLOCK_SIZE){
 
@@ -496,8 +492,7 @@ static void gcm(const struct aes_ctxt *aes, const uint8_t *iv, uint32_t ivSize, 
         sizeBlock[14] = (uint8_t)(ivSize >> (8U-3U));
         sizeBlock[15] = (uint8_t)(ivSize << 3U);
 
-        xor128((moda_word_t *)counter, (moda_word_t *)sizeBlock);
-        mul128((moda_word_t *)counter, h);
+        xormul128((moda_word_t *)counter, (moda_word_t *)sizeBlock, h);
     }
 
     /* encrypt the initial counter value */
@@ -515,8 +510,7 @@ static void gcm(const struct aes_ctxt *aes, const uint8_t *iv, uint32_t ivSize, 
             xor128(part, part);
             localMemcpy((uint8_t *)part, inPtr, ((size < AES_BLOCK_SIZE)?(uint8_t)size:AES_BLOCK_SIZE));
 
-            xor128(x, part);
-            mul128(x, h);
+            xormul128(x, part, h);
 
             if(size <= AES_BLOCK_SIZE){
 
@@ -548,8 +542,7 @@ static void gcm(const struct aes_ctxt *aes, const uint8_t *iv, uint32_t ivSize, 
             
             if(encrypt == FALSE){
 
-                xor128(x, part);
-                mul128(x, h);
+                xormul128(x, part, h);
             }
 
             xor128(part, encryptedCounter);
@@ -563,8 +556,7 @@ static void gcm(const struct aes_ctxt *aes, const uint8_t *iv, uint32_t ivSize, 
                     localMemset(&((uint8_t *)part)[size], 0U, (uint8_t)(AES_BLOCK_SIZE - size));
                 }
 
-                xor128(x, part);
-                mul128(x, h);
+                xormul128(x, part, h);
             }
             
             if(size <= AES_BLOCK_SIZE){
@@ -599,8 +591,7 @@ static void gcm(const struct aes_ctxt *aes, const uint8_t *iv, uint32_t ivSize, 
     sizeBlock[15] = (uint8_t)(textSize << 3U);
 
     /* GHASH output with sizeBlock */
-    xor128(x, (moda_word_t *)sizeBlock);
-    mul128(x, h);
+    xormul128(x, (moda_word_t *)sizeBlock, h);
 
     /* XOR encrypted initial counter with GHASH output */    
     xor128(x, encryptedInitialCounter);
