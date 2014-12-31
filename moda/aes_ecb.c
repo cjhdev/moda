@@ -62,9 +62,9 @@ void MODA_AES_ECB_Encrypt(const struct aes_ctxt *aes, uint8_t *out, const uint8_
         ASSERT((in != NULL))
 
         localMemset(state, 0U, AES_BLOCK_SIZE);
-        localMemcpy(state, i, (sz > AES_BLOCK_SIZE)?AES_BLOCK_SIZE:(uint8_t)sz);
+        localMemcpy(state, i, (sz >= AES_BLOCK_SIZE)?AES_BLOCK_SIZE:(uint8_t)sz);
         MODA_AES_Encrypt(aes, state);
-        localMemcpy(o, state, (sz > AES_BLOCK_SIZE)?AES_BLOCK_SIZE:(uint8_t)sz);
+        localMemcpy(o, state, (sz >= AES_BLOCK_SIZE)?AES_BLOCK_SIZE:(uint8_t)sz);
     
         if(sz <= AES_BLOCK_SIZE){
 
@@ -92,9 +92,9 @@ void MODA_AES_ECB_Decrypt(const struct aes_ctxt *aes, uint8_t *out, const uint8_
         ASSERT((in != NULL))
 
         localMemset(state, 0U, AES_BLOCK_SIZE);
-        localMemcpy(state, i, (sz > AES_BLOCK_SIZE)?AES_BLOCK_SIZE:(uint8_t)sz);
+        localMemcpy(state, i, (sz >= AES_BLOCK_SIZE)?AES_BLOCK_SIZE:(uint8_t)sz);
         MODA_AES_Decrypt(aes, state);
-        localMemcpy(o, state, (sz > AES_BLOCK_SIZE)?AES_BLOCK_SIZE:(uint8_t)sz);
+        localMemcpy(o, state, (sz >= AES_BLOCK_SIZE)?AES_BLOCK_SIZE:(uint8_t)sz);
     
         if(sz <= AES_BLOCK_SIZE){
 

@@ -31,7 +31,8 @@ Modules:
 
 ## License
 
-MIT License. Refer to the notice in each source file.
+Contents of /moda is covered by the MIT License. Terms and conditions
+are published in each source file.
 
 Cameron Harper 2013-2014
 cam@cjh.id.au
