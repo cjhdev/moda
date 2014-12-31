@@ -95,7 +95,7 @@ void MODA_AES_GCM_Encrypt(const struct aes_ctxt *aes, const uint8_t *iv, uint32_
  * @param *aad additional data authenticated but not ciphered
  * @param aadSize size of aad (in bytes)
  *
- * @param *t optional authentication tag output buffer
+ * @param *t optional authentication tag input buffer
  * @param tSize size of t (0..GCM_TAG_SIZE octets)
  *
  * @return validation result
