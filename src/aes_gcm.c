@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014 Cameron Harper
+/* Copyright (c) 2013-2016 Cameron Harper
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -27,10 +27,12 @@
 
 /* defines ************************************************************/
 
+/*lint -esym(9045, struct aes_ctxt) 'struct aes_ctxt' is not dereferenced in this file but refactoring aes.h to not include the definition would add needless complexity */
+
 #ifdef NDEBUG
 
     /*lint -e(9026) Allow assert to be removed completely */
-    #define ASSERT(X) ;
+    #define ASSERT(X)
 
 #else
 
@@ -38,7 +40,7 @@
     #include <assert.h>
 
     /*lint -e(9026) Allow assert to be removed completely */
-    #define ASSERT(X) /*lint -e(9034)*/assert(X);
+    #define ASSERT(X) /*lint -e(9034) Call to assert */assert(X);
 
 #endif
 
@@ -106,17 +108,19 @@ typedef uint64_t moda_word_t;
 /**
  * Equivalent to memcpy
  *
- * @param[out] acc accumulator
- * @param[in] mask XORed with accumulator
+ * @param[out] s1 target
+ * @param[in] s2 source
+ * @param[in] n number of bytes to copy
  *
  * */
-static void localMemcpy(uint8_t *s1, const uint8_t *s2, uint8_t n);
+static void localMemcpy(uint8_t *MODA_RESTRICT s1, const uint8_t *MODA_RESTRICT s2, uint8_t n);
 
 /**
  * Equivalent to memset
  *
- * @param[out] acc accumulator
- * @param[in] mask XORed with accumulator
+ * @param[out] s target
+ * @param[in] c value to set in target
+ * @param[in] n number of bytes to set
  *
  * */
 static void localMemset(uint8_t *s, const uint8_t c, uint8_t n);
@@ -124,14 +128,15 @@ static void localMemset(uint8_t *s, const uint8_t c, uint8_t n);
 /**
  * Equivalent to memcmp
  *
- * @param[out] acc accumulator
- * @param[in] mask XORed with accumulator
+ * @param[in] s1 target
+ * @param[in] s2 source
+ * @param[in] n number of bytes to compare
  *
  * */
 static uint8_t localMemcmp(const uint8_t *s1, const uint8_t *s2, uint8_t n);
 
 /**
- * XOR an aligned AES block
+ * XOR an aligned AES block (may be aliased)
  *
  * @param[out] acc accumulator
  * @param[in] mask XORed with accumulator
@@ -140,13 +145,13 @@ static uint8_t localMemcmp(const uint8_t *s1, const uint8_t *s2, uint8_t n);
 static void xor128(moda_word_t *acc, const moda_word_t *mask);
 
 /**
- * Word copy an aligned AES block
+ * word copy an non-aliased aligned AES block
  *
  * @param[out] to copy destination
  * @param[in] from copy input
  *
  * */
-static void copy128(moda_word_t *to, const moda_word_t *from);
+static void copy128(moda_word_t *MODA_RESTRICT to, const moda_word_t *MODA_RESTRICT from);
 
 #if (MODA_WORD_SIZE > 1U)
 #ifdef MODA_LITTLE_ENDIAN
@@ -273,7 +278,7 @@ static void xor128(moda_word_t *acc, const moda_word_t *mask)
     }
 }
 
-static void copy128(moda_word_t *to, const moda_word_t *from)
+static void copy128(moda_word_t *MODA_RESTRICT to, const moda_word_t *MODA_RESTRICT from)
 {
     for(uint8_t i=0U; i < WORD_BLOCK_SIZE; i++){
 

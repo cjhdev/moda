@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014 Cameron Harper
+/* Copyright (c) 2013-2016 Cameron Harper
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -28,7 +28,7 @@
 #ifdef NDEBUG
 
     /*lint -e(9026) Allow assert to be removed completely */
-    #define ASSERT(X) ;
+    #define ASSERT(X)
 
 #else
 
@@ -36,27 +36,45 @@
     #include <stddef.h>
 
     /*lint -e(9026) Allow assert to be removed completely */
-    #define ASSERT(X) /*lint -e(9034)*/assert(X);
+    #define ASSERT(X) /*lint -e(9034) Call to assert */assert(X);
 
 #endif
 
-#ifndef AES_CONST
-    #define AES_CONST
+#ifndef MODA_ARCH_INCLUDE
+    #define MODA_ARCH_INCLUDE
+#endif
+
+/* target specific includes */
+MODA_ARCH_INCLUDE
+
+/* use this to define the restrict attribute */
+#ifndef MODA_RESTRICT
+    #define MODA_RESTRICT
+#endif
+
+/* this will place target specific attributes after sbox, rsbox and rcon (e.g. IAR) */
+#ifndef MODA_CONST_PRE
+    #define MODA_CONST_PRE
+#endif
+/* this will place target specific attributes before sbox, rsbox and rcon (e.g GCC) */
+#ifndef MODA_CONST_POST
+    #define MODA_CONST_POST
 #endif    
 #ifndef SBOX
-    /*lint -e(9026)*/
+    /*lint -e(9026) Allow targets to specify special instruction for accessing sbox (e.g AVR data in program space) */
     #define SBOX(C) sbox[(C)]
 #endif
 #ifndef RSBOX
-    /*lint -e(9026)*/
+    /*lint -e(9026) Allow targets to specify special instruction for accessing rsbox (e.g AVR data in program space) */
     #define RSBOX(C) rsbox[(C)]
 #endif
 #ifndef RCON
-    /*lint -e(9026)*/
+    /*lint -e(9026) Allow targets to specify special instruction for accessing rcon (e.g AVR data in program space) */
     #define RCON(C) rcon[(C)]
 #endif
 
-#define R1 0U
+/*lint -esym(750, R1) R1 is defined but not referenced to complete the row index set */
+#define R1 0U   
 #define R2 1U
 #define R3 2U
 #define R4 3U
@@ -66,12 +84,12 @@
 #define C3 8U
 #define C4 12U
 
-/*lint -e(9026)*/    
+/*lint -e(9026) Use a macro to guarantee inlining (could replace with a static function) */    
 #define GALOIS_MUL2(B) ((((B) & 0x80U) == 0x80U) ? (uint8_t)(((B) << 1U) ^ 0x1bU) : (uint8_t)((B) << 1U))
 
-/* globals ************************************************************/
+/* static variables ***************************************************/
 
-static const uint8_t sbox[] AES_CONST = {
+MODA_CONST_PRE static const uint8_t sbox[] MODA_CONST_POST = {
     0x63U, 0x7cU, 0x77U, 0x7bU, 0xf2U, 0x6bU, 0x6fU, 0xc5U,
     0x30U, 0x01U, 0x67U, 0x2bU, 0xfeU, 0xd7U, 0xabU, 0x76U,
     0xcaU, 0x82U, 0xc9U, 0x7dU, 0xfaU, 0x59U, 0x47U, 0xf0U,
@@ -108,9 +126,9 @@ static const uint8_t sbox[] AES_CONST = {
 
 /* private prototypes *************************************************/
 
-static void localMemcpy(uint8_t *s1, const uint8_t *s2, uint8_t n);
+static void localMemcpy(uint8_t *MODA_RESTRICT s1, const uint8_t *MODA_RESTRICT s2, uint8_t n);
 
-/* public implementation **********************************************/
+/* public function implementation *************************************/
 
 void MODA_AES_Init(struct aes_ctxt *aes, enum aes_key_size keySize, const uint8_t *key)
 {
@@ -122,7 +140,7 @@ void MODA_AES_Init(struct aes_ctxt *aes, enum aes_key_size keySize, const uint8_
     uint8_t ks;
     uint8_t i = 1U;
 
-    static const uint8_t rcon[] AES_CONST = {
+    MODA_CONST_PRE static const uint8_t rcon[] MODA_CONST_POST = {
         0x8dU, 0x01U, 0x02U, 0x04U, 0x08U, 0x10U, 0x20U, 0x40U, 0x80U, 0x1bU, 0x36U
     };
 
@@ -222,22 +240,22 @@ void MODA_AES_Encrypt(const struct aes_ctxt *aes, uint8_t *s)
         /* add round key, sbox, left shift row */
 
         /* row 1 */
-        s[R1 + C1] = SBOX( s[R1 + C1] ^ k[p + R1 + C1] );   /*lint -e(835) */
-        s[R1 + C2] = SBOX( s[R1 + C2] ^ k[p + R1 + C2] );   /*lint -e(835)*/
-        s[R1 + C3] = SBOX( s[R1 + C3] ^ k[p + R1 + C3] );   /*lint -e(835)*/
-        s[R1 + C4] = SBOX( s[R1 + C4] ^ k[p + R1 + C4] );   /*lint -e(835)*/
+        s[C1] = SBOX( s[C1] ^ k[p] );
+        s[C2] = SBOX( s[C2] ^ k[p + C2] );
+        s[C3] = SBOX( s[C3] ^ k[p + C3] );
+        s[C4] = SBOX( s[C4] ^ k[p + C4] );
 
         /* row 2, left shift 1 */
-        a = SBOX( s[R2 + C1] ^ k[p + R2 + C1] );
-        s[R2 + C1] = SBOX( s[R2 + C2] ^ k[p + R2 + C2] );
+        a = SBOX( s[R2] ^ k[p + R2] );
+        s[R2     ] = SBOX( s[R2 + C2] ^ k[p + R2 + C2] );
         s[R2 + C2] = SBOX( s[R2 + C3] ^ k[p + R2 + C3] );
         s[R2 + C3] = SBOX( s[R2 + C4] ^ k[p + R2 + C4] );
         s[R2 + C4] = a;
 
         /* row 3, left shift 2 */
-        a = SBOX( s[R3 + C1] ^ k[p + R3 + C1] );
+        a = SBOX( s[R3     ] ^ k[p + R3] );
         b = SBOX( s[R3 + C2] ^ k[p + R3 + C2] );
-        s[R3 + C1] = SBOX( s[R3 + C3] ^ k[p + R3 + C3] );
+        s[R3     ] = SBOX( s[R3 + C3] ^ k[p + R3 + C3] );
         s[R3 + C2] = SBOX( s[R3 + C4] ^ k[p + R3 + C4] );
         s[R3 + C3] = a;
         s[R3 + C4] = b;
@@ -246,8 +264,8 @@ void MODA_AES_Encrypt(const struct aes_ctxt *aes, uint8_t *s)
         a = SBOX( s[R4 + C4] ^ k[p + R4 + C4] );
         s[R4 + C4] = SBOX( s[R4 + C3] ^ k[p + R4 + C3] );
         s[R4 + C3] = SBOX( s[R4 + C2] ^ k[p + R4 + C2] );
-        s[R4 + C2] = SBOX( s[R4 + C1] ^ k[p + R4 + C1] );
-        s[R4 + C1] = a;
+        s[R4 + C2] = SBOX( s[R4     ] ^ k[p + R4     ] );
+        s[R4     ] = a;
 
         if((r+1U) == aes->r){
 
@@ -300,7 +318,7 @@ void MODA_AES_Decrypt(const struct aes_ctxt *aes, uint8_t *s)
     uint8_t p;
     const uint8_t *k = aes->k;
 
-    static const uint8_t rsbox[] AES_CONST = {
+    MODA_CONST_PRE static const uint8_t rsbox[] MODA_CONST_POST = {
         0x52U, 0x09U, 0x6aU, 0xd5U, 0x30U, 0x36U, 0xa5U, 0x38U,
         0xbfU, 0x40U, 0xa3U, 0x9eU, 0x81U, 0xf3U, 0xd7U, 0xfbU,
         0x7cU, 0xe3U, 0x39U, 0x82U, 0x9bU, 0x2fU, 0xffU, 0x87U,
@@ -385,29 +403,29 @@ void MODA_AES_Decrypt(const struct aes_ctxt *aes, uint8_t *s)
         /* right shift row, reverse-sbox, add round key */
 
         /* row 1 */
-        s[R1 + C1] = RSBOX( s[R1 + C1] ) ^ k[p + R1 + C1];
-        s[R1 + C2] = RSBOX( s[R1 + C2] ) ^ k[p + R1 + C2];
-        s[R1 + C3] = RSBOX( s[R1 + C3] ) ^ k[p + R1 + C3];
-        s[R1 + C4] = RSBOX( s[R1 + C4] ) ^ k[p + R1 + C4];
+        s[C1] = RSBOX( s[C1] ) ^ k[p];
+        s[C2] = RSBOX( s[C2] ) ^ k[p + C2];
+        s[C3] = RSBOX( s[C3] ) ^ k[p + C3];
+        s[C4] = RSBOX( s[C4] ) ^ k[p + C4];
         
         /* row 2, right shift 1 */
-        a = RSBOX( s[R2 + C4] ) ^ k[p + R2 + C1];
+        a = RSBOX( s[R2 + C4] ) ^ k[p + R2];
         s[R2 + C4] = RSBOX( s[R2 + C3] ) ^ k[p + R2 + C4];
         s[R2 + C3] = RSBOX( s[R2 + C2] ) ^ k[p + R2 + C3];
-        s[R2 + C2] = RSBOX( s[R2 + C1] ) ^ k[p + R2 + C2];
-        s[R2 + C1] = a;
+        s[R2 + C2] = RSBOX( s[R2] ) ^ k[p + R2 + C2];
+        s[R2] = a;
 
         /* row 3, right shift 2 */
-        a = RSBOX( s[R3 + C1] ) ^ k[p + R3 + C3];
+        a = RSBOX( s[R3     ] ) ^ k[p + R3 + C3];
         b = RSBOX( s[R3 + C2] ) ^ k[p + R3 + C4];
-        s[R3 + C1] = RSBOX( s[R3 + C3] ) ^ k[p + R3 + C1];
+        s[R3     ] = RSBOX( s[R3 + C3] ) ^ k[p + R3];
         s[R3 + C2] = RSBOX( s[R3 + C4] ) ^ k[p + R3 + C2];
         s[R3 + C3] = a;
         s[R3 + C4] = b;
 
         /* row 4, right shift 3 */
-        a = RSBOX( s[R4 + C1] ) ^ k[p + R4 + C4];
-        s[R4 + C1] = RSBOX( s[R4 + C2] ) ^ k[p + R4 + C1];
+        a = RSBOX( s[R4] ) ^ k[p + R4 + C4];
+        s[R4     ] = RSBOX( s[R4 + C2] ) ^ k[p + R4];
         s[R4 + C2] = RSBOX( s[R4 + C3] ) ^ k[p + R4 + C2];
         s[R4 + C3] = RSBOX( s[R4 + C4] ) ^ k[p + R4 + C3];
         s[R4 + C4] = a;
@@ -416,9 +434,9 @@ void MODA_AES_Decrypt(const struct aes_ctxt *aes, uint8_t *s)
     }
 }
 
-/* private implementation *********************************************/
+/* private function implementation ************************************/
 
-static void localMemcpy(uint8_t *s1, const uint8_t *s2, uint8_t n)
+static void localMemcpy(uint8_t *MODA_RESTRICT s1, const uint8_t *MODA_RESTRICT s2, uint8_t n)
 {
     uint8_t pos = 0U;
 

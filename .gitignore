@@ -1,0 +1,5 @@
+build/unit_test/bin/*
+build/unit_test/build/*
+build/unit_test/runners/*
+build/doxygen/output/*
+build/pclint/settings/*

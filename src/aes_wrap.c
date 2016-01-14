@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014 Cameron Harper
+/* Copyright (c) 2013-2016 Cameron Harper
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -28,17 +28,19 @@
 
 /* defines ************************************************************/
 
+/*lint -esym(9045, struct aes_ctxt) 'struct aes_ctxt' is not dereferenced in this file but refactoring aes.h to not include the definition would add needless complexity */
+
 #ifdef NDEBUG
 
     /*lint -e(9026) Allow assert to be removed completely */
-    #define ASSERT(X) ;
+    #define ASSERT(X)
 
 #else
 
     #include <assert.h>
 
     /*lint -e(9026) Allow assert to be removed completely */
-    #define ASSERT(X) /*lint -e(9034)*/assert(X);
+    #define ASSERT(X) /*lint -e(9034) Call to assert */assert(X);
 
 #endif
 
@@ -50,7 +52,8 @@ static const uint8_t DefaultIV[] = {0xA6U, 0xA6U, 0xA6U, 0xA6U, 0xA6U, 0xA6U, 0x
 
 /* private prototypes *************************************************/
 
-static void localMemcpy(uint8_t *s1, const uint8_t *s2, uint8_t n);
+static void localMemcpy(uint8_t *MODA_RESTRICT s1, const uint8_t *MODA_RESTRICT s2, uint8_t n);
+
 static uint8_t localMemcmp(const uint8_t *s1, const uint8_t *s2, uint8_t n);
 
 /* public implementation **********************************************/
@@ -152,7 +155,7 @@ uint8_t MODA_AES_WRAP_Decrypt(const struct aes_ctxt *aes, uint8_t *out, const ui
 
 /* private implementation *********************************************/
 
-static void localMemcpy(uint8_t *s1, const uint8_t *s2, uint8_t n)
+static void localMemcpy(uint8_t *MODA_RESTRICT s1, const uint8_t *MODA_RESTRICT s2, uint8_t n)
 {
     uint8_t pos = 0U;
 

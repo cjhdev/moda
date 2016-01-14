@@ -1,0 +1,133 @@
+# build documentation from HEAD
+
+require "erb"
+
+DIR_ROOT = "../.."
+DIR_OUTPUT = "output"
+DIR_HTML = "#{DIR_OUTPUT}/html"
+
+desc "run doxygen to produce documentation"
+task :doxygen do
+    
+    version = File.new("#{DIR_ROOT}/version", "r").read.gsub("\n", "")
+    commitNumber = `cd #{DIR_ROOT} && git rev-parse HEAD`
+
+    options = {
+
+        :project_name => "MODA-#{version}",
+        :project_brief => "",
+        :project_number => "#{commitNumber}",
+    
+        :doxyfile => "config.dox",
+        :input => [
+            "#{DIR_ROOT}/include",
+            "."
+        ],
+        :output_dir => DIR_OUTPUT,
+        :use_mdfile_as_mainpage => "front_page.md",
+        :strip_from_path => "#{Dir.pwd}/#{DIR_ROOT}/include",        
+    }
+
+    config = DoxyFile.new(options).config
+
+    IO.popen('doxygen -', "w+") do |f|
+
+        f.puts(config)
+        
+    end
+
+    #stdin, stdout, stderr = Open3.popen3('doxygen -')
+
+    #stdin.puts(config)
+    #stdout.gets
+
+    system "rm #{DIR_HTML}/*.png"
+    system "rm #{DIR_HTML}/files.html"
+    system "rm #{DIR_HTML}/globals*.html"
+    system "rm #{DIR_HTML}/*.js"
+    system "rm #{DIR_HTML}/tabs.css"
+
+end
+
+desc "remove doxygen output"
+task :clean do
+
+    system "rm -R #{DIR_HTML}"
+
+end    
+
+class DoxyFile
+
+    def initialize(options)
+    
+        @doxyfile = options[:doxyfile]
+        @input = options[:input]
+        @use_mdfile_as_mainpage = options[:use_mdfile_as_mainpage]
+        @output_dir = options[:output_dir]
+        @project_number = options[:project_number]
+        @project_name = options[:project_name]
+        @project_brief = options[:project_brief]
+
+        @config = ERB.new(File.new(@doxyfile, "r").read).result(binding)
+        
+    end
+
+    def input
+
+        result = ""
+
+        @input.each do |file|
+
+            result << " #{file}"
+
+        end
+
+        return result
+
+    end
+
+    def use_mdfile_as_mainpage
+
+        return @use_mdfile_as_mainpage
+
+    end
+
+    def strip_from_path
+
+        return "#{Dir.pwd}/#{DIR_ROOT}/include"
+
+    end
+    
+    def config
+
+        return @config
+
+    end
+
+    def output_dir
+
+        return @output_dir
+
+    end
+
+    def project_number
+
+        return @project_number
+    
+    end
+
+    def project_brief
+
+        return @project_brief
+
+    end
+
+    def project_name
+
+        return @project_name
+
+    end
+
+    private :input, :use_mdfile_as_mainpage, :strip_from_path, :output_dir, :project_number, :project_name, :project_brief
+
+end

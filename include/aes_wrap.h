@@ -1,12 +1,5 @@
-#ifndef AES_WRAP_H
-#define AES_WRAP_H
-/**
- * @file
+/* Copyright (c) 2013-2016 Cameron Harper
  *
- * @copyright
- *
- * Copyright (c) 2013-2014 Cameron Harper
- * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
  * the Software without restriction, including without limitation the rights to
@@ -24,15 +17,24 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @addtogroup moda
- * @{
+ * */
+
+/** @file
  * 
- * @defgroup moda_aes_wrap AES Wrap Algorithm (RFC 3394:2002)
- * @{
- *
  * AES Wrap Algorithm (RFC 3394:2002)
  *
+ * @copyright
+ *
+ * Cameron Harper 2013-2016
+ * 
+ * @license
+ *
+ * MIT
+ *
  * */
+#ifndef AES_WRAP_H
+#define AES_WRAP_H
+ 
 #include <stdint.h>
 
 /** forward declaration */
@@ -74,7 +76,5 @@ void MODA_AES_WRAP_Encrypt(const struct aes_ctxt *aes, uint8_t *out, const uint8
  * */
 uint8_t MODA_AES_WRAP_Decrypt(const struct aes_ctxt *aes, uint8_t *out, const uint8_t *in, uint16_t inSize, const uint8_t *iv);
 
-/** @} */
-/** @} */
 #endif
 

@@ -1,12 +1,5 @@
-#ifndef AES_H
-#define AES_H
-/**
- * @file
+/* Copyright (c) 2013-2016 Cameron Harper
  *
- * @copyright
- *
- * Copyright (c) 2013-2014 Cameron Harper
- * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
  * the Software without restriction, including without limitation the rights to
@@ -24,18 +17,27 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @addtogroup moda
- * @{
- * 
- * @defgroup moda_aes AES Block Cipher
- * @{
- *
- * AES Block Cipher
- * 
  * */
+
+ /** @file
+ * 
+ * Interface to the AES Block Cipher
+ *
+ * @copyright
+ *
+ * Cameron Harper 2013-2016
+ * 
+ * @license
+ *
+ * MIT
+ *
+ * */
+#ifndef AES_H
+#define AES_H
+
 #include <stdint.h>
 
-/** block cipher size */
+/** block cipher size in bytes */
 #define AES_BLOCK_SIZE  16U
 
 /** AES key sizes supported by AES modes */
@@ -64,7 +66,7 @@ struct aes_ctxt {
 void MODA_AES_Init(struct aes_ctxt *aes, enum aes_key_size keySize, const uint8_t *key);
 
 /**
- * Encrypt a block of AES_BLOCK_SIZE bytes
+ * Encrypt state
  *
  * @param[in] aes context
  * @param[in] s AES_BLOCK_SIZE bytes of state
@@ -72,7 +74,8 @@ void MODA_AES_Init(struct aes_ctxt *aes, enum aes_key_size keySize, const uint8_
  * */
 void MODA_AES_Encrypt(const struct aes_ctxt *aes, uint8_t *s);
 
-/** decrypt state of AES_BLOCK_SIZE bytes
+/**
+ * Decrypt state
  *
  * @param[in] aes context
  * @param[in] s AES_BLOCK_SIZE bytes of state
@@ -80,6 +83,4 @@ void MODA_AES_Encrypt(const struct aes_ctxt *aes, uint8_t *s);
  * */
 void MODA_AES_Decrypt(const struct aes_ctxt *aes, uint8_t *s);
 
-/** @} */
-/** @} */
 #endif
