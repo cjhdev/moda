@@ -1,6 +1,6 @@
 # MODA - Modular AES
 
-An easy to integrate AES implementation.
+An easy to integrate AES implementation for resource constrained targets.
 
 Modules:
 
@@ -23,7 +23,6 @@ Modules:
 - generates lint-nt toolchain configuration
 - runs lint-nt over the source
 - checks against MISRA 2012 rules
-- extracts from source a summary of lint-nt supress directives
 
 ### build/unit_test
 
