@@ -16,9 +16,9 @@ VPATH := $(DIR_MODULE_MODA)/src:$(DIR_MODULE_MODA)/test/unit_test:$(DIR_UNITY)/s
 INCLUDES := -I$(DIR_MODULE_MODA)/include -I$(DIR_UNITY)/src
 
 # define WORD_SIZE as an argument to make to set MODA_WORD_SIZE=[1|2|4|8]
-DEFINES := -DMODA_RESTRICT=__restrict__ -DMODA_LITTLE_ENDIAN $(WORD_SIZE)
+DEFINES := -DMODA_RESTRICT=__restrict__ -DMODA_LITTLE_ENDIAN=$(WORD_SIZE)
 
-CFLAGS := -O0 -Wall -pedantic -std=c99 -g -fprofile-arcs -ftest-coverage $(INCLUDES) $(DEFINES)
+CFLAGS := -O2 -Wall -pedantic -std=c99 -g -fprofile-arcs -ftest-coverage $(INCLUDES) $(DEFINES)
 LDFLAGS := -fprofile-arcs
 
 SRC_UNITY := unity.c
@@ -28,7 +28,7 @@ TEST_FILES := $(shell ls $(DIR_MODULE_MODA)/test/unit_test)
 TESTS := $(TEST_FILES:.c=)
 TEST_RUNNERS := $(addprefix run_, $(TESTS))
 
-all: tests
+all: clean run
 
 runners: $(addprefix $(DIR_RUNNERS)/, $(TEST_RUNNERS:=.c))
 
@@ -50,6 +50,9 @@ test_aes_gcm:  $(addprefix $(DIR_BUILD)/, test_aes_gcm.o aes.o aes_gcm.o unity.o
 test_aes_wrap:  $(addprefix $(DIR_BUILD)/, test_aes_wrap.o aes.o aes_wrap.o unity.o run_test_aes_wrap.o)
 	$(CC) $(LDFLAGS) $^ -o $(DIR_BIN)/$@
 
+test_aes_cmac: $(addprefix $(DIR_BUILD)/, test_aes_cmac.o aes.o aes_cmac.o unity.o run_test_aes_cmac.o)
+	$(CC) $(LDFLAGS) $^ -o $(DIR_BIN)/$@
+
 $(DIR_BUILD)/%.o: %.c
 	$(CC) $(CFLAGS) -c $^ -o $@
 
@@ -65,3 +68,9 @@ clean_runners:
 
 clean_bin:
 	rm -f $(DIR_BIN)/*
+
+run: $(addprefix run_, $(TESTS))
+
+run_%: %
+	./$(DIR_BIN)/$^
+	gcov --no-output $(DIR_BUILD)/$(subst test_,,$^).gcda
