@@ -1,9 +1,15 @@
 # MODA - Modular AES
 
 An easy to integrate AES implementation for resource constrained targets.
-Includes tests, API documentation, compile time options, and linted source.
 
-Modules:
+Includes:
+
+- Source linted to MISRA 2012
+- Embedded interface documentation 
+- Compile time options for porting
+- Portable unit tests
+
+## Modules
 
 - AES
     - byte oriented (512B of tables)
@@ -12,7 +18,7 @@ Modules:
     - depends on AES
     - table-less
     - vector operations optimised for target word size
-    - single pass mode only (no starting and stopping)
+    - single pass mode only
 - AES WRAP
     - depends on AES
     - RFC 3394:2002
@@ -33,6 +39,7 @@ Modules:
 ### build/unit_test
 
 - compiles a binary for each test file found in test/unit_test
+- depends on Unity and Ruby
 - uses gcov for test coverage report
 
 ### build/doxygen
@@ -72,27 +79,27 @@ Modules:
 
 // define to apply target specific attribute before sbox, rsbox and rcon constants
 // default: undefined
--DMODA_CONST_PRE=__flash
+-D'MODA_CONST_PRE=__flash'
 
 // define an alternate instruction to use to access rsbox constant
 // default: rsbox[C]
--DRSBOX(C)=pgm_read_byte(&rsbox[C])
+-D'RSBOX(C)=pgm_read_byte(&rsbox[C])'
 
 // define an alternate instruction to use to access sbox constant
 // default: sbox[C]
--DSBOX(C)=pgm_read_byte(&sbox[C])
+-D'SBOX(C)=pgm_read_byte(&sbox[C])'
 
 // define an alternate instruction to use to access rcon constant
 // default: rcon[C]
--DRCON(C)=pgm_read_byte(&rcon[C])
+-D'RCON(C)=pgm_read_byte(&rcon[C])'
 
 ~~~
 
 ## Object Size Indication
 
 Will it fit?
-These are typical object sizes generated using the build/size profile.
-Individual results may vary, especially after linking.
+
+These are typical object sizes from the build/size profile:
 
 ### AVR
 
@@ -163,5 +170,6 @@ size build/aes.o build/aes_gcm.o build/aes_wrap.o build/aes_cmac.o
 MIT license. See terms and conditions in each source file.
 
 Copyright Cameron Harper 2013-2016
+
 cam@cjh.id.au
 
