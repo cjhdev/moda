@@ -40,12 +40,7 @@
 
 #endif
 
-#ifndef MODA_ARCH_INCLUDE
-    #define MODA_ARCH_INCLUDE
-#endif
-
-/* target specific includes */
-MODA_ARCH_INCLUDE
+#include "moda_port.h"
 
 /* use this to define the restrict attribute */
 #ifndef MODA_RESTRICT
