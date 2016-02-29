@@ -23,7 +23,7 @@
  * @defgroup moda_aes_gcm AES-GCM
  * @ingroup moda
  * 
- * Interface to single pass stream cipher with authentication from a single key (NIST 800-38D)
+ * Interface to single pass stream cipher with authentication from a single key (NIST SP 800-38D)
  *
  * @{
  * */

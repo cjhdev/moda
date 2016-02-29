@@ -22,7 +22,7 @@
 /**
  * @example test_aes_cmac.c
  *
- * Tests from SP800-38B appendix D
+ * Tests from SP800-38B
  *
  * */
  

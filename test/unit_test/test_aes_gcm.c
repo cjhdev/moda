@@ -22,7 +22,7 @@
 /**
  * @example test_aes_gcm.c
  *
- * Tests from NIST SP 800-38B
+ * Tests from NIST SP 800-38D
  *
  * */
 
