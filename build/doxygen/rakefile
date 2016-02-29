@@ -8,20 +8,26 @@ DIR_HTML = "#{DIR_OUTPUT}/html"
 
 GITHUB_REPO = "https://github.com/cjhdev/moda.git"
 
-dest "run doxygen and commit to gh-pages branch"
+desc "run doxygen and commit to gh-pages branch"
 task :ghpages do
 
     # get the commit number from master
-    commitNumber = `cd #{DIR_ROOT} && git rev-parse master`
+    commitNumber = `git rev-parse master`
+
+    # clear everything
+    Rake::Task["clean"].execute
 
     # prepare html directory as gh-pages branch
-    system "cd #{DIR_HTML} && rm -a && git clone #{GITHUB_REPO} . && git checkout origin/gh-pages -b gh-pages"
-    
-    # build doxygen into gh-pages branch
-    Rake::Task["doxygen"].execute
-    
-    # commit to gh-pages branch
-    #system "cd #{DIR_HTML} && git add . && git commit -m \"doxygen generated from master #{commitNumber}\""
+    if !system("mkdir #{DIR_HTML} && cd #{DIR_HTML} && git clone #{GITHUB_REPO} . && git checkout gh-pages && rm -f -R * && git branch -D master").nil?
+
+        # build doxygen into gh-pages branch
+        Rake::Task["doxygen"].execute
+        
+        # commit to gh-pages branch
+        system "cd #{DIR_HTML} && git add --all && git commit -m \"doxygen generated from master #{commitNumber}\" && git push origin gh-pages"
+
+    end
+
     
 end
 
@@ -76,7 +82,7 @@ end
 desc "remove doxygen output"
 task :clean do
 
-    system "rm -R #{DIR_HTML}"
+    system "rm -R -f #{DIR_HTML}"
 
 end    
 
