@@ -1,3 +1,5 @@
+PREDEFINED             = DOXYGEN
+
 PROJECT_NAME            = <%= project_name %>
 PROJECT_BRIEF           = <%= project_brief %>
 PROJECT_NUMBER          = <%= project_number %>
@@ -6,7 +8,7 @@ PROJECT_NUMBER          = <%= project_number %>
 
 INPUT                   = <%= input %>
 USE_MDFILE_AS_MAINPAGE  = <%= use_mdfile_as_mainpage %>
-EXAMPLE_PATH            = 
+EXAMPLE_PATH            = <%= example_path %>
 TAGFILES                =
 
 # Presentation #########################################################
@@ -22,13 +24,19 @@ GENERATE_DEPRECATEDLIST = NO
 
 LAYOUT_FILE             = layout.xml
 
-ENUM_VALUES_PER_LINE    = 1
+ENUM_VALUES_PER_LINE    = 4
 
-DISABLE_INDEX           = YES
+
 
 INLINE_SIMPLE_STRUCTS   = YES
 
 ALIASES                 += "license=@par License:\n"
+
+JAVADOC_AUTOBRIEF      = YES
+
+GENERATE_TREEVIEW = YES
+DISABLE_INDEX = NO
+SHOW_FILES = NO
 
 # Build Options ########################################################
 
@@ -50,7 +58,7 @@ SHORT_NAMES            = NO
 GENERATE_HTML           = YES
 HTML_OUTPUT             = html
 
-HTML_HEADER             = header.html
+HTML_HEADER             = 
 HTML_FOOTER             = footer.html
 HTML_STYLESHEET         =
 
