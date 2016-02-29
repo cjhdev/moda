@@ -18,6 +18,14 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * */
+
+/**
+ * @example test_aes_cmac.c
+ *
+ * Tests from SP800-38B appendix D
+ *
+ * */
+ 
 #include "unity.h"
 
 #include "moda.h"

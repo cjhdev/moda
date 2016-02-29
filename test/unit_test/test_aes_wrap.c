@@ -19,6 +19,13 @@
  *
  * */
 
+/**
+ * @example test_aes_wrap.c
+ *
+ * Tests from RFC 3394:2002
+ *
+ * */
+
 #include "unity.h"
 
 #include "moda.h"

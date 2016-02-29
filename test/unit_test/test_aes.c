@@ -18,6 +18,14 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * */
+
+/**
+ * @example test_aes.c
+ *
+ * Tests from FIPS-197
+ *
+ * */
+
 #include "unity.h"
 
 #include "moda.h"
@@ -35,6 +43,8 @@ void test_MODA_AES_Init(void)
     MODA_AES_Init(&aes, AES_KEY_256, key);
 }
 
+
+
 void test_MODA_AES_Encrypt_128(void)
 {
     static const uint8_t key[] = {0x10,0xa5,0x88,0x69,0xd7,0x4b,0xe5,0xa3,0x74,0xcf,0x86,0x7c,0xfb,0x47,0x38,0x59};
@@ -51,6 +61,8 @@ void test_MODA_AES_Encrypt_128(void)
     TEST_ASSERT_EQUAL_MEMORY(ct, out, sizeof(ct));
 }
 
+
+
 void test_MODA_AES_Encrypt_192(void)
 {
     static const uint8_t key[] = {0xe9,0xf0,0x65,0xd7,0xc1,0x35,0x73,0x58,0x7f,0x78,0x75,0x35,0x7d,0xfb,0xb1,0x6c,0x53,0x48,0x9f,0x6a,0x4b,0xd0,0xf7,0xcd};
@@ -66,6 +78,8 @@ void test_MODA_AES_Encrypt_192(void)
 
     TEST_ASSERT_EQUAL_MEMORY(ct, out, sizeof(ct));
 }
+
+
 
 void test_MODA_AES_Encrypt_256(void)
 {
@@ -130,3 +144,6 @@ void test_MODA_AES_Decrypt_256(void)
 
     TEST_ASSERT_EQUAL_MEMORY(pt, out, sizeof(pt));
 }
+
+
+

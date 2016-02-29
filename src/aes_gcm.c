@@ -44,6 +44,12 @@
 
 #endif
 
+/* largest possible authentication tag size */
+#define GCM_TAG_SIZE 16U
+
+/* nominal IV size */
+#define GCM_IV_SIZE 12U
+
 #ifndef MODA_WORD_SIZE
     #define MODA_WORD_SIZE 1U
 #endif

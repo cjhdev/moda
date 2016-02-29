@@ -19,28 +19,25 @@
  *
  * */
 
- /** @file
- * 
- * Interface to the AES Block Cipher
- *
- * @copyright
- *
- * Cameron Harper 2013-2016
- * 
- * @license
- *
- * MIT
- *
- * */
+
 #ifndef AES_H
 #define AES_H
 
+ /**
+ * @defgroup moda_aes AES Block Cipher
+ * @ingroup moda
+ * 
+ * Interface to the block cipher defined in FIPS-197
+ *
+ * @{
+ * */
+
 #include <stdint.h>
 
-/** block cipher size in bytes */
+/** block cipher block size in bytes */
 #define AES_BLOCK_SIZE  16U
 
-/** AES key sizes supported by AES modes */
+/** Supported key sizes */
 enum aes_key_size {
 
     AES_KEY_128 = 16U,  /**< AES-128 */
@@ -48,7 +45,7 @@ enum aes_key_size {
     AES_KEY_256 = 32U   /**< AES-256 */
 };
 
-/** AES context */
+/** Stores the expanded key */
 struct aes_ctxt {
 
     uint8_t k[240U];    /**< expanded key */
@@ -56,31 +53,32 @@ struct aes_ctxt {
 };
 
 /**
- * Initialise an AES block cipher
+ * Initialise an AES block cipher by expanding a key
  *
- * @param[in] aes context
- * @param[in] keySize size of the key
+ * @param[in] aes expanded key
+ * @param[in] keySize enumerated size of `key`
  * @param[in] key pointer to the key (any alignment)
  * 
  * */
 void MODA_AES_Init(struct aes_ctxt *aes, enum aes_key_size keySize, const uint8_t *key);
 
 /**
- * Encrypt state
+ * Encrypt a block of memory called state
  *
- * @param[in] aes context
- * @param[in] s AES_BLOCK_SIZE bytes of state
+ * @param[in] aes expanded key
+ * @param[in] s pointer to #AES_BLOCK_SIZE bytes of state (any alignment)
  * 
  * */
 void MODA_AES_Encrypt(const struct aes_ctxt *aes, uint8_t *s);
 
 /**
- * Decrypt state
+ * Decrypt a block of memory called state
  *
- * @param[in] aes context
- * @param[in] s AES_BLOCK_SIZE bytes of state
+ * @param[in] aes expanded key
+ * @param[in] s pointer to #AES_BLOCK_SIZE bytes of state (any alignment)
  *
  * */
 void MODA_AES_Decrypt(const struct aes_ctxt *aes, uint8_t *s);
 
+/** @} */
 #endif

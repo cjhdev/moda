@@ -95,6 +95,8 @@ Includes:
 
 ~~~
 
+See "moda_port.h" for more details.
+
 ## Object Size Indication
 
 Will it fit?

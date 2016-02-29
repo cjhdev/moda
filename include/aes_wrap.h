@@ -18,22 +18,17 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * */
-
-/** @file
- * 
- * AES Wrap Algorithm (RFC 3394:2002)
- *
- * @copyright
- *
- * Cameron Harper 2013-2016
- * 
- * @license
- *
- * MIT
- *
- * */
 #ifndef AES_WRAP_H
 #define AES_WRAP_H
+
+/**
+ * @defgroup moda_aes_wrap Authenticated AES Wrap Algorithm (RFC 3394:2002)
+ * @ingroup moda
+ *
+ * Interface to authenticated AES wrap algorithm (RFC 3394:2002)
+ *
+ * @{
+ * */
  
 #include <stdint.h>
 
@@ -42,39 +37,42 @@ struct aes_ctxt;
 
 /** Wrap input
  *
- * - input must be a multiple of 8 bytes and at least 8 bytes
- * - output buffer must be large enough to accommodate (in_size + 8) bytes
- * - output may be the same memory address as input
- * - iv may be NULL to use the default IV
+ * @note `inSize` must be a multiple 8 and be equal to or greater than 8
+ * @note `out` must be large enough to accomodate `inSize` + 8 bytes
+ * @note if `in` == `out` the process will be performed in place
+ * @note the internal default IV shall be used if `iv` is set to NULL
  *
- * @param aes AES context
+ * @param aes block cipher expanded key
  * @param out output buffer
  * @param in input buffer
- * @param inSize size of in (in bytes)
+ * @param inSize byte size of `in`
  * @param iv 8 byte IV field (NULL for default)
  *
  * */
 void MODA_AES_WRAP_Encrypt(const struct aes_ctxt *aes, uint8_t *out, const uint8_t *in, uint16_t inSize, const uint8_t *iv);
 
 /** Unwrap input
- * 
- * - input must be a multiple of 8 bytes and at least 16 bytes
- * - output buffer must be large enough to accommodate (in_size - 8) bytes
- * - output may be the same memory address as input
- * - iv may be NULL to use the default IV
  *
- * @param aes AES context
+ * @note this process is able to validate correctness of `out`
+ * @note `inSize` must be a multiple 8 and be equal to or greater than 16
+ * @note `out` must be large enough to accomodate (`inSize` - 8) bytes
+ * @note if `in` == `out` the process will be performed in place
+ * @note the internal default IV shall be used if `iv` is set to NULL
+ * 
+ * @param aes block cipher expanded key
  * @param out output buffer
  * @param in input buffer
- * @param inSize size of in (in bytes)
+ * @param inSize byte size of `in`
  * @param iv 8 byte IV field (NULL for default)
  *
- * @return validation result
- * @retval MODA_RETVAL_PASS
- * @retval MODA_RETVAL_FAIL
+ * @return unwrap result
+ * 
+ * @retval MODA_RETVAL_PASS `in` unwrapped successfully
+ * @retval MODA_RETVAL_FAIL `in` did not unwrap successfully
  *
  * */
 uint8_t MODA_AES_WRAP_Decrypt(const struct aes_ctxt *aes, uint8_t *out, const uint8_t *in, uint16_t inSize, const uint8_t *iv);
 
+/** @} */
 #endif
 

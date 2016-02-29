@@ -19,6 +19,13 @@
  *
  * */
 
+/**
+ * @example test_aes_gcm.c
+ *
+ * Tests from NIST SP 800-38B
+ *
+ * */
+
 #include "unity.h"
 
 #include "moda.h"

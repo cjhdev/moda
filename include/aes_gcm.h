@@ -19,18 +19,13 @@
  *
  * */
 
-/** @file
- *
- * Stream cipher with authentication from a single key (NIST 800-38D)
- *
- * @copyright
- *
- * Cameron Harper 2013-2016
+/**
+ * @defgroup moda_aes_gcm AES-GCM
+ * @ingroup moda
  * 
- * @license
+ * Interface to single pass stream cipher with authentication from a single key (NIST 800-38D)
  *
- * MIT
- *
+ * @{
  * */
 #ifndef AES_GCM_H
 #define AES_GCM_H
@@ -40,72 +35,58 @@
 /** forward declaration */
 struct aes_ctxt;
 
-/** largest possible authentication tag size */
-#define GCM_TAG_SIZE 16U
-
-/** nominal IV size */
-#define GCM_IV_SIZE 12U
-
 /**
- * AES GCM Decipher
- * 
- * This function may be called with:
- * 1. in and out defined, aad defined
- * 2. in and out null, aad defined
- * 3. in and out defined, aad null
- * 
- * t is always optional. Valid tSize is (0..GCM_TAG_SIZE) octets.
- * If (tSize == 0) then no authentication will be performed.
+ * AES GCM Encrypt
  *
- * @param aes context
+ * @note if `in` == `out` then encryption will be performed in place
+ * @note `tSize` is valid in the range (0..16) 
+ *
+ * @param aes block cipher expanded key
  *
  * @param iv initialisation vector
- * @param ivSize size of initialisation vector (in bytes)
+ * @param ivSize byte size of `iv`
  *
  * @param out output buffer
- * @param in input buffer (may be aligned with *out)
- * @param textSize size of in (in bytes)
+ * @param in input buffer
+ * @param textSize byte size of `in`
  *
- * @param aad additional data authenticated but not ciphered
- * @param aadSize size of aad (in bytes)
+ * @param aad additional data authenticated but not encrypted/decrypted
+ * @param aadSize byte size of `aad`
  *
  * @param t optional authentication tag input buffer
- * @param tSize size of t (0..GCM_TAG_SIZE bytes)
+ * @param tSize byte size of `t`
  *
  * */
 void MODA_AES_GCM_Encrypt(const struct aes_ctxt *aes, const uint8_t *iv, uint32_t ivSize, uint8_t *out, const uint8_t *in, uint32_t textSize, const uint8_t *aad, uint32_t aadSize, uint8_t *t, uint8_t tSize);
 
 /**
- * AES GCM Encipher
+ * AES GCM Decrypt
  *
- * This function may be called with:
- * 1. in and out defined, aad defined
- * 2. in and out null, aad defined
- * 3. in and out defined, aad null
+ * @note if `in` == `out` then encryption will be performed in place
+ * @note `tSize` is valid in the range (0..16) 
  * 
- * t is always optional. Valid tSize is (0..GCM_TAG_SIZE) octets.
- *
- * @param aes context
+ * @param aes block cipher expanded key
  *
  * @param iv initialisation vector
- * @param ivSize size of initialisation vector (octets)
+ * @param ivSize byte size of `iv`
  *
  * @param out output buffer
- * @param in input buffer (may be aligned with *out)
- * @param textSize size of in (in bytes)
+ * @param in input buffer
+ * @param textSize byte size of `in`
  *
- * @param *aad additional data authenticated but not ciphered
- * @param aadSize size of aad (in bytes)
+ * @param *aad additional data authenticated but not encrypted/decrypted
+ * @param aadSize byte size of `aad`
  *
  * @param *t optional authentication tag input buffer
- * @param tSize size of t (0..GCM_TAG_SIZE octets)
+ * @param tSize size of t
  *
  * @return validation result
  *
- * @retval MODA_RETVAL_PASS
- * @retval MODA_RETVAL_FAIL
+ * @retval MODA_RETVAL_PASS `in` and `aad` is valid according to `t`
+ * @retval MODA_RETVAL_FAIL `in` and `aad` in invalid according to `t`
  *
  * */
 uint8_t MODA_AES_GCM_Decrypt(const struct aes_ctxt *aes, const uint8_t *iv, uint32_t ivSize, uint8_t *out, const uint8_t *in, uint32_t textSize, const uint8_t *aad, uint32_t aadSize, const uint8_t *t, uint8_t tSize);
 
+/** @} */
 #endif

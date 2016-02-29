@@ -18,22 +18,17 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * */
-
-/** @file
- *
- * CMAC implementation as defined in NIST SP 800-38B
- *
- * @copyright
- *
- * Cameron Harper 2013-2016
- * 
- * @license
- *
- * MIT
- *
- * */
 #ifndef AES_CMAC_H
 #define AES_CMAC_H
+
+/**
+ * @defgroup moda_aes_cmac AES-CMAC
+ * @ingroup moda
+ * 
+ * Interface to single pass CMAC implementation as defined in NIST SP 800-38B
+ *
+ * @{
+ * */
 
 #include <stdint.h>
 
@@ -43,13 +38,14 @@ struct aes_ctxt;
 /**
  * Produce a CMAC in one step starting with an initialised block cipher
  *
- * @param[in] aes block cipher context
+ * @param[in] aes block cipher expanded key
  * @param[in] in input buffer to CMAC
- * @param[in] inLen length of input buffer in bytes
+ * @param[in] inLen byte length of `in`
  * @param[out] t authentication tag output buffer
- * @param[in] tSize size of t buffer in bytes (0..AES_BLOCK_SIZE)
+ * @param[in] tSize byte length of `t` in range (0..16)
  *
  * */
 void MODA_AES_CMAC(const struct aes_ctxt *aes, const uint8_t *in, uint32_t inLen, uint8_t *t, uint8_t tSize);
 
+/** @} */
 #endif

@@ -18,24 +18,19 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * */
-
-/** @file
- *
- * MODA - Modular AES
- *
- * @copyright
- *
- * Cameron Harper 2013-2016
- * 
- * @license
- *
- * MIT
- *
- * */
 #ifndef MODA_H
 #define MODA_H
 
-#define MODA_RETVAL_PASS    0   /**< success */
-#define MODA_RETVAL_FAIL    1   /**< failure */
+/** 
+ * @defgroup moda MODA - Modular AES
+ * 
+ * MODA - Modular AES
+ *
+ * */
 
+#define MODA_RETVAL_PASS    0   /**< SUCCESS */
+#define MODA_RETVAL_FAIL    1   /**< FAILURE */
+
+
+/** @} */
 #endif

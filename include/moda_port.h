@@ -18,32 +18,63 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * */
-
-/** @file
- *
- * MODA defines for porting.
- *
- * @copyright
- *
- * Cameron Harper 2013-2016
- * 
- * @license
- *
- * MIT
- *
- * */
 #ifndef MODA_PORT_H
 #define MODA_PORT_H
 
-#ifdef MODA_AVR_GCC_PROGMEM
+/**
+ * @defgroup moda_port Porting options for Modular AES
+ * @ingroup moda
+ *
+ * MODA defines for porting
+ *
+ * @{
+ * */
 
-    #include <avr/pgmspace.h>
-    
+/* only included for documentation */
+#ifdef DOXYGEN
+
+    /** define to remove ASSERT from source @note default is undefined */
+    #define NDEBUG
+
+    /** define to set target word size to 1, 2, 4 or 8 @note default is 1 */
+    #define MODA_WORD_SIZE
+
+    /** define to apply compiler specific restrict attribute @note default is undefined */
+    #define MODA_RESTRICT __restrict__
+
+    /** define to include settings for putting constant data into program memory for avr gcc @note default is undefined */
+    #define MODA_AVR_GCC_PROGMEM
+
+    /** define to apply target specific attribute after sbox, rsbox and rcon constants @note default is undefined */
     #define MODA_CONST_POST PROGMEM
+
+    /** define to apply target specific attribute before sbox, rsbox and rcon constants @note default is undefined */
+    #define MODA_CONST_PRE PROGMEM __flash
+
+    /** define an alternate instruction to use to access rsbox constant @note default is `rsbox[C]` */    
     #define RSBOX(C) pgm_read_byte(&rsbox[C])
+
+    /** define an alternate instruction to use to access sbox constant @note default is `sbox[C]` */
     #define SBOX(C) pgm_read_byte(&sbox[C])
+
+    /** define an alternate instruction to use to access rcon constant @note default is `rcon[C]` */    
     #define RCON(C) pgm_read_byte(&rcon[C])
 
-#endif
+#else
 
+    #ifdef MODA_AVR_GCC_PROGMEM
+
+        #include <avr/pgmspace.h>
+        
+        #define MODA_CONST_POST PROGMEM
+        #define RSBOX(C) pgm_read_byte(&rsbox[C])
+        #define SBOX(C) pgm_read_byte(&sbox[C])
+        #define RCON(C) pgm_read_byte(&rcon[C])
+
+    #endif
+
+#endif    
+
+
+/** @} */
 #endif
