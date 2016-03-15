@@ -1,8 +1,9 @@
 language: C
 script:
-    - cd build/unit_test && make WORD_SIZE=1 run
-    - cd build/unit_test && make WORD_SIZE=2 run
-    - cd build/unit_test && make WORD_SIZE=4 run
-    - cd build/unit_test && make WORD_SIZE=8 run
+    - cd build/unit_test
+    - make WORD_SIZE=1 run
+    - make WORD_SIZE=2 run
+    - make WORD_SIZE=4 run
+    - make WORD_SIZE=8 run
     
 
