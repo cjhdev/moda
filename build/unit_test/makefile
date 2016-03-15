@@ -73,4 +73,4 @@ run: $(addprefix run_, $(TESTS))
 
 run_%: %
 	./$(DIR_BIN)/$^
-	gcov --no-output $(DIR_BUILD)/$(subst test_,,$^).gcda
+	gcov --no-output --object-directory $(DIR_BUILD) $(DIR_BUILD)/$(subst test_,,$^).gcda
