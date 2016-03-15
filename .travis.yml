@@ -1,1 +1,3 @@
 language: C
+script: cd build/unit_test && make run
+
