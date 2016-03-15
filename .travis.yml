@@ -1,4 +1,6 @@
-language: C
+notifications:
+    email: false
+language: C  
 script:
     - cd build/unit_test
     - make WORD_SIZE=1 run
