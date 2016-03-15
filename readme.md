@@ -1,5 +1,7 @@
 # MODA - Modular AES
 
+[![Build Status](https://travis-ci.org/cjhdev/moda.svg?branch=master)](https://travis-ci.org/cjhdev/moda)
+
 An easy to integrate AES implementation for resource constrained targets.
 
 Includes:
