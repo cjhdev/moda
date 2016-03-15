@@ -16,7 +16,7 @@ VPATH := $(DIR_MODULE_MODA)/src:$(DIR_MODULE_MODA)/test/unit_test:$(DIR_UNITY)/s
 INCLUDES := -I$(DIR_MODULE_MODA)/include -I$(DIR_UNITY)/src
 
 # define WORD_SIZE as an argument to make to set MODA_WORD_SIZE=[1|2|4|8]
-DEFINES := -DMODA_RESTRICT=__restrict__ -DMODA_LITTLE_ENDIAN=$(WORD_SIZE)
+DEFINES := -DMODA_RESTRICT=__restrict__ -DMODA_LITTLE_ENDIAN -DMODA_WORD_SIZE=$(WORD_SIZE)
 
 CFLAGS := -O2 -Wall -pedantic -std=c99 -g -fprofile-arcs -ftest-coverage $(INCLUDES) $(DEFINES)
 LDFLAGS := -fprofile-arcs
