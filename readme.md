@@ -7,9 +7,9 @@ An easy to integrate AES implementation for resource constrained targets.
 Includes:
 
 - Source linted to MISRA 2012
-- Embedded interface documentation 
+- Embedded interface documentation
+- Portable tests
 - Compile time options for porting
-- Portable unit tests
 
 ## Modules
 
@@ -21,7 +21,7 @@ Includes:
     - table-less
     - vector operations optimised for target word size
     - single pass mode only
-- AES WRAP
+- AES Key Wrap
     - depends on AES
     - RFC 3394:2002
 - AES CMAC
@@ -173,7 +173,4 @@ size build/aes.o build/aes_gcm.o build/aes_wrap.o build/aes_cmac.o
 
 MIT license. See terms and conditions in each source file.
 
-Copyright Cameron Harper 2013-2016
-
-cam@cjh.id.au
-
+Copyright 2013-2016 Cameron Harper
