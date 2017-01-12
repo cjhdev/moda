@@ -210,7 +210,8 @@ static void leftShift128(moda_word_t *v)
 
 static void xor128(moda_word_t *acc, const moda_word_t *mask)
 {
-    for(uint8_t i=0U; i < WORD_BLOCK_SIZE; i++){
+    uint8_t i;
+    for(i=0U; i < WORD_BLOCK_SIZE; i++){
 
         acc[i] ^= mask[i];
     }
@@ -218,7 +219,8 @@ static void xor128(moda_word_t *acc, const moda_word_t *mask)
 
 static void copy128(moda_word_t *MODA_RESTRICT to, const moda_word_t *MODA_RESTRICT from)
 {
-    for(uint8_t i=0U; i < WORD_BLOCK_SIZE; i++){
+    uint8_t i;
+    for(i=0U; i < WORD_BLOCK_SIZE; i++){
 
         to[i] = from[i];
     }

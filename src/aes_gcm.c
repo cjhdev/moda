@@ -193,7 +193,8 @@ bool MODA_AES_GCM_Decrypt(const struct aes_ctxt *aes, const uint8_t *iv, uint32_
 
 static void xor128(moda_word_t *acc, const moda_word_t *mask)
 {
-    for(uint8_t i=0U; i < WORD_BLOCK_SIZE; i++){
+    uint8_t i;
+    for(i=0U; i < WORD_BLOCK_SIZE; i++){
 
         acc[i] ^= mask[i];
     }
@@ -201,7 +202,8 @@ static void xor128(moda_word_t *acc, const moda_word_t *mask)
 
 static void copy128(moda_word_t *MODA_RESTRICT to, const moda_word_t *MODA_RESTRICT from)
 {
-    for(uint8_t i=0U; i < WORD_BLOCK_SIZE; i++){
+    uint8_t i;
+    for(i=0U; i < WORD_BLOCK_SIZE; i++){
 
         to[i] = from[i];
     }
@@ -234,7 +236,8 @@ static moda_word_t swapw(moda_word_t w)
 
 static void swapBlock(moda_word_t *block)
 {
-    for(uint8_t i=0; i < WORD_BLOCK_SIZE; i++){
+    uint8_t i;
+    for(i=0; i < WORD_BLOCK_SIZE; i++){
 
         block[i] = swapw(block[i]);
     }
