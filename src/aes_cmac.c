@@ -185,7 +185,7 @@ static void leftShift128(moda_word_t *v)
     
     carry = 0U;
 
-    for(i=WORD_BLOCK_SIZE; i > 0U; i--){
+    for(i=(uint8_t)WORD_BLOCK_SIZE; i > 0U; i--){
 
         t = v[i-1U];
 
