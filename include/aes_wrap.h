@@ -31,6 +31,7 @@
  * */
  
 #include <stdint.h>
+#include <stdbool.h>
 
 /** forward declaration */
 struct aes_ctxt;
@@ -65,13 +66,10 @@ void MODA_AES_WRAP_Encrypt(const struct aes_ctxt *aes, uint8_t *out, const uint8
  * @param inSize byte size of `in`
  * @param iv 8 byte IV field (NULL for default)
  *
- * @return unwrap result
- * 
- * @retval MODA_RETVAL_PASS `in` unwrapped successfully
- * @retval MODA_RETVAL_FAIL `in` did not unwrap successfully
+ * @return true if `in` unwrapped successfully
  *
  * */
-uint8_t MODA_AES_WRAP_Decrypt(const struct aes_ctxt *aes, uint8_t *out, const uint8_t *in, uint16_t inSize, const uint8_t *iv);
+bool MODA_AES_WRAP_Decrypt(const struct aes_ctxt *aes, uint8_t *out, const uint8_t *in, uint16_t inSize, const uint8_t *iv);
 
 /** @} */
 #endif

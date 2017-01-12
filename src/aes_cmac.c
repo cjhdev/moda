@@ -23,42 +23,11 @@
 
 #include "aes.h"
 #include "aes_cmac.h"
-#include "moda.h"
+#include "moda_internal.h"
+
+#include <string.h>
 
 /* defines ************************************************************/
-
-/*lint -esym(9045, struct aes_ctxt) 'struct aes_ctxt' is not dereferenced in this file but refactoring aes.h to not include the definition would add needless complexity */
-
-#ifdef NDEBUG
-
-    /*lint -e(9026) Allow assert to be removed completely */
-    #define ASSERT(X)
-
-#else
-
-    #include <stddef.h>
-    #include <assert.h>
-
-    /*lint -e(9026) Allow assert to be removed completely */
-    #define ASSERT(X) /*lint -e(9034) Call to assert */assert(X);
-
-#endif
-
-#ifndef MODA_WORD_SIZE
-    #define MODA_WORD_SIZE 1U
-#endif
-
-#if (MODA_WORD_SIZE == 1U)
-typedef uint8_t moda_word_t;
-#elif (MODA_WORD_SIZE == 2U)
-typedef uint16_t moda_word_t;
-#elif (MODA_WORD_SIZE == 4U)
-typedef uint32_t moda_word_t;
-#elif (MODA_WORD_SIZE == 8U)
-typedef uint64_t moda_word_t;
-#else
-    #error "unknown word size"
-#endif
 
 #define WORD_BLOCK_SIZE (AES_BLOCK_SIZE / MODA_WORD_SIZE)
 
@@ -74,17 +43,7 @@ typedef uint64_t moda_word_t;
     #define MSB 0x8000000000000000U
 #endif
 
-/* private prototypes *************************************************/
-
-/**
- * Equivalent to memcpy
- *
- * @param[out] s1 target
- * @param[in] s2 source
- * @param[in] n number of bytes to copy
- *
- * */
-static void localMemcpy(uint8_t *MODA_RESTRICT s1, const uint8_t *MODA_RESTRICT s2, uint8_t n);
+/* static function prototypes *****************************************/
 
 /**
  * XOR an aligned AES block (may be aliased)
@@ -104,7 +63,6 @@ static void xor128(moda_word_t *acc, const moda_word_t *mask);
  * */
 static void copy128(moda_word_t *MODA_RESTRICT to, const moda_word_t *MODA_RESTRICT from);
 
-
 /**
  * left shift (by one bit) a 128bit vector
  *
@@ -114,7 +72,7 @@ static void copy128(moda_word_t *MODA_RESTRICT to, const moda_word_t *MODA_RESTR
 static void leftShift128(moda_word_t *v);
 
 #if (MODA_WORD_SIZE > 1U)
-#ifdef MODA_LITTLE_ENDIAN
+#ifndef MODA_BIG_ENDIAN
 /**
  * Swap the byte endianness of a word
  *
@@ -128,7 +86,7 @@ static moda_word_t swapw(moda_word_t w);
 #endif
 
 
-/* public function implementation *************************************/
+/* functions  *********************************************************/
 
 void MODA_AES_CMAC(const struct aes_ctxt *aes, const uint8_t *in, uint32_t inLen, uint8_t *t, uint8_t tSize)
 {
@@ -183,8 +141,9 @@ void MODA_AES_CMAC(const struct aes_ctxt *aes, const uint8_t *in, uint32_t inLen
 
         xor128(m, m);
 
-        localMemcpy((uint8_t *)m, &in[pos], (uint8_t)((size < AES_BLOCK_SIZE) ? (size) : AES_BLOCK_SIZE));
+        (void)memcpy(m, &in[pos], (size < AES_BLOCK_SIZE) ? (size_t)size : AES_BLOCK_SIZE);
 
+        /* if the last block */
         if(size <= AES_BLOCK_SIZE){
 
             if(size == AES_BLOCK_SIZE){
@@ -193,7 +152,7 @@ void MODA_AES_CMAC(const struct aes_ctxt *aes, const uint8_t *in, uint32_t inLen
             }
             else{
 
-                m[size] = 0x80U;
+                ((uint8_t *)m)[size] = 0x80U;
                 xor128(m, k2);
             }            
         }
@@ -211,11 +170,11 @@ void MODA_AES_CMAC(const struct aes_ctxt *aes, const uint8_t *in, uint32_t inLen
         size -= AES_BLOCK_SIZE;
     }
 
-    localMemcpy(t, (uint8_t *)k, tSize);
+    (void)memcpy(t, k, (size_t)tSize);
 }
 
 
-/* private function implementation ************************************/
+/* static functions  **************************************************/
 
 static void leftShift128(moda_word_t *v)
 {
@@ -226,21 +185,21 @@ static void leftShift128(moda_word_t *v)
     
     carry = 0U;
 
-    for(i=(uint8_t)WORD_BLOCK_SIZE; i > 0U; i--){
+    for(i=WORD_BLOCK_SIZE; i > 0U; i--){
 
         t = v[i-1U];
 
 #if (MODA_WORD_SIZE > 1U)
-#ifdef MODA_LITTLE_ENDIAN
+#ifndef MODA_BIG_ENDIAN
         t = swapw(t);        
 #endif
 #endif
         tt = t;
-        tt <<= 1U;
+        tt <<= 1;
         tt |= carry;
 
 #if (MODA_WORD_SIZE > 1U)
-#ifdef MODA_LITTLE_ENDIAN
+#ifndef MODA_BIG_ENDIAN
         tt = swapw(tt);        
 #endif
 #endif
@@ -265,19 +224,8 @@ static void copy128(moda_word_t *MODA_RESTRICT to, const moda_word_t *MODA_RESTR
     }
 }
 
-static void localMemcpy(uint8_t *MODA_RESTRICT s1, const uint8_t *MODA_RESTRICT s2, uint8_t n)
-{
-    uint8_t pos = 0U;
-
-    while(pos != n){
-
-        s1[pos] = s2[pos];
-        pos++;
-    }
-}
-
 #if (MODA_WORD_SIZE > 1U)
-#ifdef MODA_LITTLE_ENDIAN
+#ifndef MODA_BIG_ENDIAN
 static moda_word_t swapw(moda_word_t w)
 {
 #if MODA_WORD_SIZE == 1U 

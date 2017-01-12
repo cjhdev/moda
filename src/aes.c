@@ -22,30 +22,11 @@
 /* includes ***********************************************************/
 
 #include "aes.h"
+#include "moda_internal.h"
+
+#include <string.h>
 
 /* defines ************************************************************/
-
-#ifdef NDEBUG
-
-    /*lint -e(9026) Allow assert to be removed completely */
-    #define ASSERT(X)
-
-#else
-
-    #include <assert.h>
-    #include <stddef.h>
-
-    /*lint -e(9026) Allow assert to be removed completely */
-    #define ASSERT(X) /*lint -e(9034) Call to assert */assert(X);
-
-#endif
-
-#include "moda_port.h"
-
-/* use this to define the restrict attribute */
-#ifndef MODA_RESTRICT
-    #define MODA_RESTRICT
-#endif
 
 /* this will place target specific attributes after sbox, rsbox and rcon (e.g. IAR) */
 #ifndef MODA_CONST_PRE
@@ -55,20 +36,17 @@
 #ifndef MODA_CONST_POST
     #define MODA_CONST_POST
 #endif    
+
 #ifndef SBOX
-    /*lint -e(9026) Allow targets to specify special instruction for accessing sbox (e.g AVR data in program space) */
     #define SBOX(C) sbox[(C)]
 #endif
 #ifndef RSBOX
-    /*lint -e(9026) Allow targets to specify special instruction for accessing rsbox (e.g AVR data in program space) */
     #define RSBOX(C) rsbox[(C)]
 #endif
 #ifndef RCON
-    /*lint -e(9026) Allow targets to specify special instruction for accessing rcon (e.g AVR data in program space) */
     #define RCON(C) rcon[(C)]
 #endif
 
-/*lint -esym(750, R1) R1 is defined but not referenced to complete the row index set */
 #define R1 0U   
 #define R2 1U
 #define R3 2U
@@ -79,7 +57,6 @@
 #define C3 8U
 #define C4 12U
 
-/*lint -e(9026) Use a macro to guarantee inlining (could replace with a static function) */    
 #define GALOIS_MUL2(B) ((((B) & 0x80U) == 0x80U) ? (uint8_t)(((B) << 1U) ^ 0x1bU) : (uint8_t)((B) << 1U))
 
 /* static variables ***************************************************/
@@ -119,11 +96,7 @@ MODA_CONST_PRE static const uint8_t sbox[] MODA_CONST_POST = {
     0x41U, 0x99U, 0x2dU, 0x0fU, 0xb0U, 0x54U, 0xbbU, 0x16U
 };
 
-/* private prototypes *************************************************/
-
-static void localMemcpy(uint8_t *MODA_RESTRICT s1, const uint8_t *MODA_RESTRICT s2, uint8_t n);
-
-/* public function implementation *************************************/
+/* functions **********************************************************/
 
 void MODA_AES_Init(struct aes_ctxt *aes, enum aes_key_size keySize, const uint8_t *key)
 {
@@ -159,12 +132,11 @@ void MODA_AES_Init(struct aes_ctxt *aes, enum aes_key_size keySize, const uint8_
         break;         
 
     default:
-
-        ASSERT(((keySize != AES_KEY_128)&&(keySize != AES_KEY_192)&&(keySize != AES_KEY_256)))
+        /* impossible */
         break;
     }
 
-    localMemcpy(aes->k, key, (uint8_t)keySize);
+    (void)memcpy(aes->k, key, (size_t)keySize);
     k = aes->k;    
     ks = (uint8_t)keySize;
     p = ks;
@@ -426,18 +398,5 @@ void MODA_AES_Decrypt(const struct aes_ctxt *aes, uint8_t *s)
         s[R4 + C4] = a;
 
         p -= 16U;
-    }
-}
-
-/* private function implementation ************************************/
-
-static void localMemcpy(uint8_t *MODA_RESTRICT s1, const uint8_t *MODA_RESTRICT s2, uint8_t n)
-{
-    uint8_t pos = 0U;
-
-    while(pos != n){
-
-        s1[pos] = s2[pos];
-        pos++;
     }
 }

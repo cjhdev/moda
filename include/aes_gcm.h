@@ -31,6 +31,7 @@
 #define AES_GCM_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 /** forward declaration */
 struct aes_ctxt;
@@ -80,13 +81,10 @@ void MODA_AES_GCM_Encrypt(const struct aes_ctxt *aes, const uint8_t *iv, uint32_
  * @param *t optional authentication tag input buffer
  * @param tSize size of t
  *
- * @return validation result
- *
- * @retval MODA_RETVAL_PASS `in` and `aad` is valid according to `t`
- * @retval MODA_RETVAL_FAIL `in` and `aad` in invalid according to `t`
+ * @return true if input is valid
  *
  * */
-uint8_t MODA_AES_GCM_Decrypt(const struct aes_ctxt *aes, const uint8_t *iv, uint32_t ivSize, uint8_t *out, const uint8_t *in, uint32_t textSize, const uint8_t *aad, uint32_t aadSize, const uint8_t *t, uint8_t tSize);
+bool MODA_AES_GCM_Decrypt(const struct aes_ctxt *aes, const uint8_t *iv, uint32_t ivSize, uint8_t *out, const uint8_t *in, uint32_t textSize, const uint8_t *aad, uint32_t aadSize, const uint8_t *t, uint8_t tSize);
 
 /** @} */
 #endif

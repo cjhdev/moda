@@ -23,26 +23,13 @@
 
 #include "aes.h"
 #include "aes_gcm.h"
-#include "moda.h"
+#include "moda_internal.h"
+
+#include <string.h>
 
 /* defines ************************************************************/
 
-/*lint -esym(9045, struct aes_ctxt) 'struct aes_ctxt' is not dereferenced in this file but refactoring aes.h to not include the definition would add needless complexity */
-
-#ifdef NDEBUG
-
-    /*lint -e(9026) Allow assert to be removed completely */
-    #define ASSERT(X)
-
-#else
-
-    #include <stddef.h>
-    #include <assert.h>
-
-    /*lint -e(9026) Allow assert to be removed completely */
-    #define ASSERT(X) /*lint -e(9034) Call to assert */assert(X);
-
-#endif
+#define WORD_BLOCK_SIZE (AES_BLOCK_SIZE / MODA_WORD_SIZE)
 
 /* largest possible authentication tag size */
 #define GCM_TAG_SIZE 16U
@@ -50,28 +37,7 @@
 /* nominal IV size */
 #define GCM_IV_SIZE 12U
 
-#ifndef MODA_WORD_SIZE
-    #define MODA_WORD_SIZE 1U
-#endif
-
-#if (MODA_WORD_SIZE == 1U)
-typedef uint8_t moda_word_t;
-#elif (MODA_WORD_SIZE == 2U)
-typedef uint16_t moda_word_t;
-#elif (MODA_WORD_SIZE == 4U)
-typedef uint32_t moda_word_t;
-#elif (MODA_WORD_SIZE == 8U)
-typedef uint64_t moda_word_t;
-#else
-    #error "unknown word size"
-#endif
-
-#define WORD_BLOCK_SIZE (AES_BLOCK_SIZE / MODA_WORD_SIZE)
-
-#define TRUE 1U
-#define FALSE 0U
-
-#ifdef MODA_LITTLE_ENDIAN
+#ifndef MODA_BIG_ENDIAN
 
     #define R   0xe1U
 
@@ -109,37 +75,7 @@ typedef uint64_t moda_word_t;
 
 #endif
 
-/* private prototypes *************************************************/
-
-/**
- * Equivalent to memcpy
- *
- * @param[out] s1 target
- * @param[in] s2 source
- * @param[in] n number of bytes to copy
- *
- * */
-static void localMemcpy(uint8_t *MODA_RESTRICT s1, const uint8_t *MODA_RESTRICT s2, uint8_t n);
-
-/**
- * Equivalent to memset
- *
- * @param[out] s target
- * @param[in] c value to set in target
- * @param[in] n number of bytes to set
- *
- * */
-static void localMemset(uint8_t *s, const uint8_t c, uint8_t n);
-
-/**
- * Equivalent to memcmp
- *
- * @param[in] s1 target
- * @param[in] s2 source
- * @param[in] n number of bytes to compare
- *
- * */
-static uint8_t localMemcmp(const uint8_t *s1, const uint8_t *s2, uint8_t n);
+/* static function prototypes *****************************************/
 
 /**
  * XOR an aligned AES block (may be aliased)
@@ -160,7 +96,7 @@ static void xor128(moda_word_t *acc, const moda_word_t *mask);
 static void copy128(moda_word_t *MODA_RESTRICT to, const moda_word_t *MODA_RESTRICT from);
 
 #if (MODA_WORD_SIZE > 1U)
-#ifdef MODA_LITTLE_ENDIAN
+#ifndef MODA_BIG_ENDIAN
 /**
  * Swap the byte endianness of a word
  *
@@ -180,6 +116,26 @@ static void swapBlock(moda_word_t *block);
 #endif
 #endif
 
+/* Table-less galois multiplication in a 128bit field
+ *
+ * X = X . Y
+ *
+ * algorithm:
+ * 
+ * Z <- 0, V <- X
+ * for i to 127 do
+ *   if Yi == 1 then
+ *     Z <- Z XOR V
+ *   end if
+ *   if V127 = 0 then
+ *     V <- rightshift(V)
+ *   else
+ *     V <- rightshit(V) XOR R
+ *   end if
+ * end for
+ * return Z
+ * 
+ * */    
 static void xormul128(moda_word_t *x, const moda_word_t *text, const moda_word_t *y);
 
 /**
@@ -205,10 +161,10 @@ static void incrementCounter(uint8_t *counter);
  * @param[out] XX GMAC output
  * 
  * */
-static void gcm(const struct aes_ctxt *aes, const uint8_t *iv, uint32_t ivSize, uint8_t *out, const uint8_t *in, uint32_t textSize, const uint8_t *aad, uint32_t aadSize, uint8_t encrypt, moda_word_t *x);
+static void gcm(const struct aes_ctxt *aes, const uint8_t *iv, uint32_t ivSize, uint8_t *out, const uint8_t *in, uint32_t textSize, const uint8_t *aad, uint32_t aadSize, bool encrypt, moda_word_t *x);
 
 
-/* public implementation **********************************************/
+/* functions **********************************************************/
 
 void MODA_AES_GCM_Encrypt(const struct aes_ctxt *aes, const uint8_t *iv, uint32_t ivSize, uint8_t *out, const uint8_t *in, uint32_t textSize, const uint8_t *aad, uint32_t aadSize, uint8_t *t, uint8_t tSize)
 {
@@ -217,64 +173,23 @@ void MODA_AES_GCM_Encrypt(const struct aes_ctxt *aes, const uint8_t *iv, uint32_
     ASSERT((aes != NULL))
     ASSERT((tSize <= GCM_TAG_SIZE))
     
-    gcm(aes, iv, ivSize, out, in, textSize, aad, aadSize, TRUE, x);
-    localMemcpy(t, (uint8_t *)x, tSize);
+    gcm(aes, iv, ivSize, out, in, textSize, aad, aadSize, true, x);
+    (void)memcpy(t, x, (size_t)tSize);
 }
 
-uint8_t MODA_AES_GCM_Decrypt(const struct aes_ctxt *aes, const uint8_t *iv, uint32_t ivSize, uint8_t *out, const uint8_t *in, uint32_t textSize, const uint8_t *aad, uint32_t aadSize, const uint8_t *t, uint8_t tSize)
+bool MODA_AES_GCM_Decrypt(const struct aes_ctxt *aes, const uint8_t *iv, uint32_t ivSize, uint8_t *out, const uint8_t *in, uint32_t textSize, const uint8_t *aad, uint32_t aadSize, const uint8_t *t, uint8_t tSize)
 {
     moda_word_t x[WORD_BLOCK_SIZE];
 
     ASSERT((aes != NULL))
     ASSERT((tSize <= GCM_TAG_SIZE))
     
-    gcm(aes, iv, ivSize, out, in, textSize, aad, aadSize, FALSE, x);
+    gcm(aes, iv, ivSize, out, in, textSize, aad, aadSize, false, x);
 
-    return localMemcmp((uint8_t *)x, t, tSize);
+    return (memcmp(x, t, (size_t)tSize) == 0);
 }
 
-/* private implementation *********************************************/
-
-static void localMemcpy(uint8_t *s1, const uint8_t *s2, uint8_t n)
-{
-    uint8_t pos = 0U;
-
-    while(pos != n){
-
-        s1[pos] = s2[pos];
-        pos++;
-    }
-}
-
-static void localMemset(uint8_t *s, const uint8_t c, uint8_t n)
-{
-    uint8_t pos = 0U;
-    
-    while(pos != n){
-
-        s[pos] = c;
-        pos++;
-    }
-}
-
-static uint8_t localMemcmp(const uint8_t *s1, const uint8_t *s2, uint8_t n)
-{
-    uint8_t retval = MODA_RETVAL_PASS;
-    uint8_t pos = 0U;
-
-    while(pos != n){
-
-        if(s1[pos] != s2[pos]){
-
-            retval = MODA_RETVAL_FAIL;
-            break;
-        }
-
-        pos++;
-    }
-
-    return retval;
-}
+/* static functions  **************************************************/
 
 static void xor128(moda_word_t *acc, const moda_word_t *mask)
 {
@@ -293,7 +208,7 @@ static void copy128(moda_word_t *MODA_RESTRICT to, const moda_word_t *MODA_RESTR
 }
 
 #if (MODA_WORD_SIZE > 1U)
-#ifdef MODA_LITTLE_ENDIAN
+#ifndef MODA_BIG_ENDIAN
 static moda_word_t swapw(moda_word_t w)
 {
 #if MODA_WORD_SIZE == 1U 
@@ -329,26 +244,6 @@ static void swapBlock(moda_word_t *block)
 
 static void xormul128(moda_word_t *x, const moda_word_t *text, const moda_word_t *y)
 {
-    /* Table-less galois multiplication in a 128bit field
-     *
-     * X = X . Y
-     *
-     * algorithm:
-     * 
-     * Z <- 0, V <- X
-     * for i to 127 do
-     *   if Yi == 1 then
-     *     Z <- Z XOR V
-     *   end if
-     *   if V127 = 0 then
-     *     V <- rightshift(V)
-     *   else
-     *     V <- rightshit(V) XOR R
-     *   end if
-     * end for
-     * return Z
-     * 
-     * */    
     moda_word_t z[WORD_BLOCK_SIZE];
     moda_word_t v[WORD_BLOCK_SIZE];
     moda_word_t yi;
@@ -386,16 +281,16 @@ static void xormul128(moda_word_t *x, const moda_word_t *text, const moda_word_t
                 t = v[k];        
 
 #if (MODA_WORD_SIZE > 1U)
-#ifdef MODA_LITTLE_ENDIAN
+#ifndef MODA_BIG_ENDIAN
                 t = swapw(t);        
 #endif
 #endif
                 tt = t;
-                tt >>= 1U;
+                tt >>= 1;
                 tt |= carry;
 
 #if (MODA_WORD_SIZE > 1U)
-#ifdef MODA_LITTLE_ENDIAN
+#ifndef MODA_BIG_ENDIAN
                 tt = swapw(tt);        
 #endif
 #endif
@@ -408,7 +303,7 @@ static void xormul128(moda_word_t *x, const moda_word_t *text, const moda_word_t
                 v[0] ^= R;
             }
             
-            yi <<= 1U;            
+            yi <<= 1;            
         }
     }
 
@@ -435,7 +330,7 @@ static void incrementCounter(uint8_t *counter)
     }    
 }
 
-static void gcm(const struct aes_ctxt *aes, const uint8_t *iv, uint32_t ivSize, uint8_t *out, const uint8_t *in, uint32_t textSize, const uint8_t *aad, uint32_t aadSize, uint8_t encrypt, moda_word_t *x)
+static void gcm(const struct aes_ctxt *aes, const uint8_t *iv, uint32_t ivSize, uint8_t *out, const uint8_t *in, uint32_t textSize, const uint8_t *aad, uint32_t aadSize, bool encrypt, moda_word_t *x)
 {
     static const uint8_t zeroCounter[] = {0U, 0U, 0U, 1U};
     uint8_t counter[AES_BLOCK_SIZE];
@@ -444,7 +339,7 @@ static void gcm(const struct aes_ctxt *aes, const uint8_t *iv, uint32_t ivSize, 
     moda_word_t part[WORD_BLOCK_SIZE];
     moda_word_t h[WORD_BLOCK_SIZE];    
     uint8_t sizeBlock[AES_BLOCK_SIZE];
-    
+
     uint32_t size;
     const uint8_t *inPtr;
     uint8_t *outPtr;
@@ -454,7 +349,7 @@ static void gcm(const struct aes_ctxt *aes, const uint8_t *iv, uint32_t ivSize, 
     MODA_AES_Encrypt(aes, (uint8_t *)h);
 
 #if (MODA_WORD_SIZE > 1U)
-#ifdef MODA_LITTLE_ENDIAN
+#ifndef MODA_BIG_ENDIAN
     swapBlock(h);
 #endif
 #endif
@@ -464,8 +359,8 @@ static void gcm(const struct aes_ctxt *aes, const uint8_t *iv, uint32_t ivSize, 
 
     if(ivSize == GCM_IV_SIZE){
 
-        localMemcpy(counter, iv, GCM_IV_SIZE);
-        localMemcpy(&counter[GCM_IV_SIZE], zeroCounter, (uint8_t)(AES_BLOCK_SIZE - GCM_IV_SIZE));
+        (void)memcpy(counter, iv, GCM_IV_SIZE);
+        (void)memcpy(&counter[GCM_IV_SIZE], zeroCounter, (AES_BLOCK_SIZE - GCM_IV_SIZE));
     }
     /* GHASH(H, {}, IV) */ 
     else{
@@ -481,7 +376,7 @@ static void gcm(const struct aes_ctxt *aes, const uint8_t *iv, uint32_t ivSize, 
             for(;;){
 
                 xor128(part, part);
-                localMemcpy((uint8_t *)part, inPtr, ((size < AES_BLOCK_SIZE)? (uint8_t)size : AES_BLOCK_SIZE));
+                (void)memcpy(part, inPtr, ((size < AES_BLOCK_SIZE)? (size_t)size : AES_BLOCK_SIZE));
                 xormul128((moda_word_t *)counter, part, h);
                 
                 if(size <= AES_BLOCK_SIZE){
@@ -519,7 +414,7 @@ static void gcm(const struct aes_ctxt *aes, const uint8_t *iv, uint32_t ivSize, 
         for(;;){
 
             xor128(part, part);
-            localMemcpy((uint8_t *)part, inPtr, ((size < AES_BLOCK_SIZE)?(uint8_t)size:AES_BLOCK_SIZE));
+            (void)memcpy(part, inPtr, ((size < AES_BLOCK_SIZE)?(size_t)size:AES_BLOCK_SIZE));
 
             xormul128(x, part, h);
 
@@ -549,22 +444,22 @@ static void gcm(const struct aes_ctxt *aes, const uint8_t *iv, uint32_t ivSize, 
             MODA_AES_Encrypt(aes, (uint8_t *)encryptedCounter);  
             
             xor128(part, part);
-            localMemcpy((uint8_t *)part, inPtr, ((size < AES_BLOCK_SIZE)?(uint8_t)size:AES_BLOCK_SIZE));
+            (void)memcpy(part, inPtr, ((size < AES_BLOCK_SIZE)?(size_t)size:AES_BLOCK_SIZE));
             
-            if(encrypt == FALSE){
+            if(!encrypt){
 
                 xormul128(x, part, h);
             }
 
             xor128(part, encryptedCounter);
-            localMemcpy(outPtr, (uint8_t *)part, (size < AES_BLOCK_SIZE)?(uint8_t)size:AES_BLOCK_SIZE);
+            (void)memcpy(outPtr, part, (size < AES_BLOCK_SIZE)?(size_t)size:AES_BLOCK_SIZE);
             
-            if(encrypt == TRUE){
+            if(encrypt){
 
                 /* zero garbage in unused block portion */
                 if(size < AES_BLOCK_SIZE){
 
-                    localMemset(&((uint8_t *)part)[size], 0U, (uint8_t)(AES_BLOCK_SIZE - size));
+                    (void)memset(&((uint8_t *)part)[size], 0, (AES_BLOCK_SIZE - (size_t)size));
                 }
 
                 xormul128(x, part, h);

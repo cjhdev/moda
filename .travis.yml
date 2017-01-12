@@ -2,10 +2,11 @@ notifications:
     email: false
 language: C  
 script:
-    - cd build/unit_test
-    - make WORD_SIZE=1 run
-    - make WORD_SIZE=2 run
-    - make WORD_SIZE=4 run
-    - make WORD_SIZE=8 run
+    - cd test
+    - make all MODA_WORD_SIZE=1
+    - make all MODA_WORD_SIZE=2   
+    - make all MODA_WORD_SIZE=4
+    - make all MODA_WORD_SIZE=8
+    
     
 

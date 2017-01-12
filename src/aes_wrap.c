@@ -23,40 +23,19 @@
 
 #include "aes.h"
 #include "aes_wrap.h"
-#include "moda.h"
-#include <stddef.h>
+#include "moda_internal.h"
+
+#include <string.h>
 
 /* defines ************************************************************/
 
-/*lint -esym(9045, struct aes_ctxt) 'struct aes_ctxt' is not dereferenced in this file but refactoring aes.h to not include the definition would add needless complexity */
-
-#ifdef NDEBUG
-
-    /*lint -e(9026) Allow assert to be removed completely */
-    #define ASSERT(X)
-
-#else
-
-    #include <assert.h>
-
-    /*lint -e(9026) Allow assert to be removed completely */
-    #define ASSERT(X) /*lint -e(9034) Call to assert */assert(X);
-
-#endif
-
 #define WRAP_BLOCK 8U
 
-/* globals ************************************************************/
+/* static variables ***************************************************/
 
 static const uint8_t DefaultIV[] = {0xA6U, 0xA6U, 0xA6U, 0xA6U, 0xA6U, 0xA6U, 0xA6U, 0xA6U};
 
-/* private prototypes *************************************************/
-
-static void localMemcpy(uint8_t *MODA_RESTRICT s1, const uint8_t *MODA_RESTRICT s2, uint8_t n);
-
-static uint8_t localMemcmp(const uint8_t *s1, const uint8_t *s2, uint8_t n);
-
-/* public implementation **********************************************/
+/* functions **********************************************************/
 
 void MODA_AES_WRAP_Encrypt(const struct aes_ctxt *aes, uint8_t *out, const uint8_t *in, uint16_t inSize, const uint8_t *iv)
 {
@@ -77,10 +56,10 @@ void MODA_AES_WRAP_Encrypt(const struct aes_ctxt *aes, uint8_t *out, const uint8
 
     for(i=inSize; (i != 0U); i -= WRAP_BLOCK){
 
-        localMemcpy(&out[i], &in[i - WRAP_BLOCK], WRAP_BLOCK);        
+        (void)memcpy(&out[i], &in[i - WRAP_BLOCK], WRAP_BLOCK);        
     }
 
-    localMemcpy(b, ivPtr, WRAP_BLOCK);
+    (void)memcpy(b, ivPtr, WRAP_BLOCK);
     
     for(j=0U; j < 6U; j++){
 
@@ -88,7 +67,7 @@ void MODA_AES_WRAP_Encrypt(const struct aes_ctxt *aes, uint8_t *out, const uint8
         
         for(i=0U; i < (inSize >> 3U); i++){
 
-            localMemcpy(&b[WRAP_BLOCK], r, WRAP_BLOCK);
+            (void)memcpy(&b[WRAP_BLOCK], r, WRAP_BLOCK);
 
             MODA_AES_Encrypt(aes, b);
 
@@ -96,16 +75,16 @@ void MODA_AES_WRAP_Encrypt(const struct aes_ctxt *aes, uint8_t *out, const uint8
             b[6] ^= (uint8_t)(t >> WRAP_BLOCK);
             t++;
 
-            localMemcpy(r, &b[WRAP_BLOCK], WRAP_BLOCK);
+            (void)memcpy(r, &b[WRAP_BLOCK], WRAP_BLOCK);
             
             r = &r[WRAP_BLOCK];            
         }
     }
 
-    localMemcpy(out, b, WRAP_BLOCK);
+    (void)memcpy(out, b, WRAP_BLOCK);
 }
 
-uint8_t MODA_AES_WRAP_Decrypt(const struct aes_ctxt *aes, uint8_t *out, const uint8_t *in, uint16_t inSize, const uint8_t *iv)
+bool MODA_AES_WRAP_Decrypt(const struct aes_ctxt *aes, uint8_t *out, const uint8_t *in, uint16_t inSize, const uint8_t *iv)
 {
     uint8_t b[AES_BLOCK_SIZE];
     uint8_t *r;
@@ -123,11 +102,11 @@ uint8_t MODA_AES_WRAP_Decrypt(const struct aes_ctxt *aes, uint8_t *out, const ui
         ivPtr = DefaultIV;
     }
 
-    localMemcpy(b, in, WRAP_BLOCK);
+    (void)memcpy(b, in, WRAP_BLOCK);
 
     for(i=WRAP_BLOCK; i < inSize; i += WRAP_BLOCK){
 
-        localMemcpy(&out[i - WRAP_BLOCK], &in[i], WRAP_BLOCK);        
+        (void)memcpy(&out[i - WRAP_BLOCK], &in[i], WRAP_BLOCK);        
     }
 
     t =  (uint16_t)(6U * n);
@@ -138,49 +117,17 @@ uint8_t MODA_AES_WRAP_Decrypt(const struct aes_ctxt *aes, uint8_t *out, const ui
     
         for(i=0U; i < n; i++){
 
-            localMemcpy(&b[WRAP_BLOCK], r, WRAP_BLOCK);
+            (void)memcpy(&b[WRAP_BLOCK], r, WRAP_BLOCK);
 
             b[7] ^= (uint8_t)t;
             b[6] ^= (uint8_t)(t >> 8U);
             t--;
 
             MODA_AES_Decrypt(aes, b);
-            localMemcpy(r, &b[WRAP_BLOCK], WRAP_BLOCK);
+            (void)memcpy(r, &b[WRAP_BLOCK], WRAP_BLOCK);
             r -= WRAP_BLOCK;
         }
     }
 
-    return localMemcmp(b, ivPtr, WRAP_BLOCK);
-}
-
-/* private implementation *********************************************/
-
-static void localMemcpy(uint8_t *MODA_RESTRICT s1, const uint8_t *MODA_RESTRICT s2, uint8_t n)
-{
-    uint8_t pos = 0U;
-
-    while(pos != n){
-
-        s1[pos] = s2[pos];
-        pos++;
-    }
-}
-
-static uint8_t localMemcmp(const uint8_t *s1, const uint8_t *s2, uint8_t n)
-{
-    uint8_t retval = MODA_RETVAL_PASS;
-    uint8_t pos = 0U;
-
-    while(pos != n){
-
-        if(s1[pos] != s2[pos]){
-
-            retval = MODA_RETVAL_FAIL;
-            break;
-        }
-
-        pos++;
-    }
-
-    return retval;
+    return (memcmp(b, ivPtr, WRAP_BLOCK) == 0);
 }

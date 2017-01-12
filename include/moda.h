@@ -28,9 +28,10 @@
  *
  * */
 
-#define MODA_RETVAL_PASS    0   /**< SUCCESS */
-#define MODA_RETVAL_FAIL    1   /**< FAILURE */
-
+#include "aes.h"
+#include "aes_gcm.h"
+#include "aes_cmac.h"
+#include "aes_wrap.h"
 
 /** @} */
 #endif
